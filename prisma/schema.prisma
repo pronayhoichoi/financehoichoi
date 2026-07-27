@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Roles (Sheet 4: User Roles) ---
+// VENDOR_EXTERNAL is intentionally not a login-capable role: vendors never
+// authenticate, they only ever interact through a tokenized VRF link.
+enum Role {
+  FINANCE_TEAM
+  FINANCE_HEAD_CFO
+  FOUNDER_CEO
+  PRODUCTION_MANAGER
+  DEPARTMENT_HEAD
+  EMPLOYEE_CONTRACTOR
+  REPORTING_MANAGER
+  ADMIN_IT
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum DocumentType {
+  PAN
+  GST
+  MSME
+  CANCELLED_CHEQUE
+  AGREEMENT
+  OTHER
+}
+
+enum VrfStatus {
+  PENDING
+  EDITS_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reviewedVrfSubmissions VrfSubmission[] @relation("VrfReviewedBy")
+  auditLogs              AuditLog[]
+}
+
+model Vendor {
+  id      String @id @default(cuid())
+  // Auto-generated on VRF approval or manual create, e.g. V-2026-0001
+  vendorCode String @unique
+
+  legalName      String
+  tradeName      String?
+  pan            String
+  gstin          String[] @default([])
+  placeOfSupply  String?
+  placeOfInvoice String?
+  msmeStatus     Boolean  @default(false)
+
+  addressLine String?
+  city        String?
+  state       String?
+  pincode     String?
+
+  // Bank details: masked on read by lib/rbac.ts unless the viewer has Edit/Approve access.
+  bankAccountNo   String
+  bankName        String
+  ifsc            String
+  beneficiaryName String
+
+  category      String
+  paymentTerms  String?
+  tdsSection    String?
+  lowerTdsFlag  Boolean @default(false)
+  defaultLedger String?
+
+  status VendorStatus @default(ACTIVE)
+
+  documents      VendorDocument[]
+  vrfSubmission  VrfSubmission?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pan])
+  @@index([status])
+}
+
+model VendorDocument {
+  id         String       @id @default(cuid())
+  vendorId   String
+  vendor     Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  type       DocumentType
+  fileUrl    String
+  fileName   String
+  expiryDate DateTime?
+  uploadedAt DateTime     @default(now())
+
+  @@index([vendorId])
+}
+
+// A vendor's self-submitted registration, reached only via `token` (no login).
+model VrfSubmission {
+  id           String  @id @default(cuid())
+  token        String  @unique
+  invitedEmail String?
+
+  // Mirrors the Vendor fields above; kept as JSON until approval so a
+  // rejected/edits-requested submission never touches the Vendor table.
+  formData Json
+
+  status         VrfStatus @default(PENDING)
+  // Null until the vendor first submits the form; set again on each resubmit.
+  submittedAt    DateTime?
+  reviewerNotes  String?
+  reviewedByUserId String?
+  reviewedBy     User?     @relation("VrfReviewedBy", fields: [reviewedByUserId], references: [id])
+  reviewedAt     DateTime?
+
+  // Set once approved and the Vendor record is created from this submission.
+  vendorId String? @unique
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
+  documents VrfDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VrfDocument {
+  id              String        @id @default(cuid())
+  vrfSubmissionId String
+  vrfSubmission   VrfSubmission @relation(fields: [vrfSubmissionId], references: [id], onDelete: Cascade)
+  type            DocumentType
+  fileUrl         String
+  fileName        String
+  uploadedAt      DateTime      @default(now())
+
+  @@index([vrfSubmissionId])
+}
+
+// Immutable trail per Sheet 6's "Audit-first" principle.
+model AuditLog {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}

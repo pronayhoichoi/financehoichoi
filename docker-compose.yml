@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hoichoi
+      POSTGRES_PASSWORD: hoichoi_dev_pw
+      POSTGRES_DB: hoichoi_finance
+    ports:
+      - "5433:5432"
+    volumes:
+      - hoichoi_pg_data:/var/lib/postgresql/data
+
+volumes:
+  hoichoi_pg_data:
