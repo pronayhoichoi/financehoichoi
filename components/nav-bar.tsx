@@ -18,15 +18,21 @@ export async function NavBar() {
     <header className="border-b bg-background">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold">
-            Hoichoi Finance
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="bg-hc-gradient shadow-brand inline-block size-7 rounded-[10px]" />
+            <span className="text-hc-gradient font-heading text-lg font-extrabold tracking-tight">
+              hoichoi
+            </span>
+            <span className="text-muted-foreground text-sm font-medium">
+              Finance
+            </span>
           </Link>
           <nav className="flex gap-4 text-sm">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-hc-red transition-colors"
               >
                 {link.label}
               </Link>

@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/table";
 import type { VendorStatus } from "@/app/generated/prisma/client";
 
-const STATUS_VARIANT: Record<
+const STATUS_BADGE: Record<
   VendorStatus,
-  "default" | "secondary" | "destructive"
+  { variant: "default" | "secondary" | "destructive"; className?: string }
 > = {
-  ACTIVE: "default",
-  INACTIVE: "secondary",
-  BLOCKED: "destructive",
+  ACTIVE: { variant: "default", className: "bg-hc-success text-white" },
+  INACTIVE: { variant: "secondary" },
+  BLOCKED: { variant: "destructive" },
 };
 
 export default async function VendorsPage({
@@ -125,7 +125,12 @@ export default async function VendorsPage({
                   <TableCell className="font-mono text-xs">{v.pan}</TableCell>
                   <TableCell>{v.category}</TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[v.status]}>{v.status}</Badge>
+                    <Badge
+                      variant={STATUS_BADGE[v.status].variant}
+                      className={STATUS_BADGE[v.status].className}
+                    >
+                      {v.status}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))

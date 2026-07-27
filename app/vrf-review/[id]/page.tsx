@@ -8,14 +8,14 @@ import { Separator } from "@/components/ui/separator";
 import { ReviewControls } from "./review-controls";
 import type { VrfStatus } from "@/app/generated/prisma/client";
 
-const STATUS_VARIANT: Record<
+const STATUS_BADGE: Record<
   VrfStatus,
-  "default" | "secondary" | "destructive" | "outline"
+  { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
 > = {
-  PENDING: "secondary",
-  EDITS_REQUESTED: "outline",
-  APPROVED: "default",
-  REJECTED: "destructive",
+  PENDING: { variant: "secondary" },
+  EDITS_REQUESTED: { variant: "outline" },
+  APPROVED: { variant: "default", className: "bg-hc-success text-white" },
+  REJECTED: { variant: "destructive" },
 };
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -65,7 +65,12 @@ export default async function VrfReviewDetailPage({
             Invited: {submission.invitedEmail ?? "(open link)"}
           </p>
         </div>
-        <Badge variant={STATUS_VARIANT[submission.status]}>{submission.status}</Badge>
+        <Badge
+          variant={STATUS_BADGE[submission.status].variant}
+          className={STATUS_BADGE[submission.status].className}
+        >
+          {submission.status}
+        </Badge>
       </div>
 
       {submission.reviewerNotes && (

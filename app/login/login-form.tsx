@@ -15,7 +15,18 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm overflow-hidden pt-0">
+        <div className="bg-hc-gradient relative overflow-hidden px-6 py-7">
+          <div className="absolute -top-10 -right-10 size-32 rounded-full bg-white/10" />
+          <div className="relative">
+            <div className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">
+              Finance
+            </div>
+            <div className="font-heading text-3xl font-extrabold tracking-tight text-white">
+              hoichoi
+            </div>
+          </div>
+        </div>
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
         </CardHeader>

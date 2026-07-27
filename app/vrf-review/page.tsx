@@ -15,14 +15,14 @@ import {
 import { InviteForm } from "./invite-form";
 import type { VrfStatus } from "@/app/generated/prisma/client";
 
-const STATUS_VARIANT: Record<
+const STATUS_BADGE: Record<
   VrfStatus,
-  "default" | "secondary" | "destructive" | "outline"
+  { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
 > = {
-  PENDING: "secondary",
-  EDITS_REQUESTED: "outline",
-  APPROVED: "default",
-  REJECTED: "destructive",
+  PENDING: { variant: "secondary" },
+  EDITS_REQUESTED: { variant: "outline" },
+  APPROVED: { variant: "default", className: "bg-hc-success text-white" },
+  REJECTED: { variant: "destructive" },
 };
 
 export default async function VrfReviewPage() {
@@ -77,7 +77,12 @@ export default async function VrfReviewPage() {
                       : "Not yet"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[s.status]}>{s.status}</Badge>
+                    <Badge
+                      variant={STATUS_BADGE[s.status].variant}
+                      className={STATUS_BADGE[s.status].className}
+                    >
+                      {s.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {formatDistanceToNow(s.updatedAt, { addSuffix: true })}
