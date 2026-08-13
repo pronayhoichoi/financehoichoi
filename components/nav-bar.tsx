@@ -10,6 +10,8 @@ export async function NavBar() {
   const { role, name, email } = session.user;
 
   const links = [
+    canView(role, "PROJECT") && { href: "/projects", label: "Projects" },
+    canView(role, "PO") && { href: "/purchase-orders", label: "Purchase Orders" },
     canView(role, "VENDOR_MASTER") && { href: "/vendors", label: "Vendors" },
     canView(role, "VRF") && { href: "/vrf-review", label: "VRF Review" },
   ].filter(Boolean) as { href: string; label: string }[];

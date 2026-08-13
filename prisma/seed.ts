@@ -36,6 +36,7 @@ async function main() {
   const extraUsers = [
     { email: "finance@hoichoi.tv", name: "Finance Member", role: "FINANCE_TEAM" as const },
     { email: "cfo@hoichoi.tv", name: "Finance Head", role: "FINANCE_HEAD_CFO" as const },
+    { email: "pm@hoichoi.tv", name: "Production Manager", role: "PRODUCTION_MANAGER" as const },
   ];
 
   for (const u of extraUsers) {

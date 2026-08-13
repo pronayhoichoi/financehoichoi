@@ -46,6 +46,38 @@ enum VrfStatus {
   REJECTED
 }
 
+// --- Production / Budgeting (Sheet 3: Project, Production Budget, PO) ---
+enum ProjectType {
+  FILM
+  SERIES
+  SHORT
+  OTHER
+}
+
+enum ProjectStatus {
+  PRE_PRODUCTION
+  PRODUCTION
+  POST
+  RELEASED
+  ARCHIVED
+}
+
+enum BudgetStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REVISION
+}
+
+enum PoStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PARTIALLY_FULFILLED
+  CLOSED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -94,6 +126,7 @@ model Vendor {
 
   documents      VendorDocument[]
   vrfSubmission  VrfSubmission?
+  purchaseOrders PurchaseOrder[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,6 +186,112 @@ model VrfDocument {
   uploadedAt      DateTime      @default(now())
 
   @@index([vrfSubmissionId])
+}
+
+// Master list of content productions (Sheet 3: Project / Show Master).
+model Project {
+  id           String        @id @default(cuid())
+  code         String        @unique // e.g. PRJ-2026-001
+  title        String
+  type         ProjectType
+  genre        String?
+  status       ProjectStatus @default(PRE_PRODUCTION)
+  startDate    DateTime?
+  endDate      DateTime?
+  businessUnit String?
+  producer     String?
+  budgetOwnerUserId String?
+  currency     String        @default("INR")
+  commissioned Boolean       @default(false)
+
+  budgets        BudgetHeader[]
+  purchaseOrders PurchaseOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// A versioned budget for a project. At most one APPROVED header per project.
+model BudgetHeader {
+  id              String       @id @default(cuid())
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version         Int
+  status          BudgetStatus @default(DRAFT)
+  notes           String?
+  approvedByUserId String?
+  approvedAt      DateTime?
+
+  lines BudgetLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, version])
+  @@index([projectId])
+}
+
+model BudgetLine {
+  id             String       @id @default(cuid())
+  budgetHeaderId String
+  budgetHeader   BudgetHeader @relation(fields: [budgetHeaderId], references: [id], onDelete: Cascade)
+  department     String
+  category       String
+  ledger         String?
+  description    String
+  approvedAmount Decimal      @db.Decimal(14, 2)
+  currency       String       @default("INR")
+  sortOrder      Int          @default(0)
+
+  poLines PoLine[]
+
+  @@index([budgetHeaderId])
+}
+
+// Formal commitment to a vendor against a project's budget (Sheet 3: PO).
+model PurchaseOrder {
+  id               String   @id @default(cuid())
+  poNumber         String   @unique // e.g. PO-2026-0001
+  projectId        String
+  project          Project  @relation(fields: [projectId], references: [id])
+  vendorId         String
+  vendor           Vendor   @relation(fields: [vendorId], references: [id])
+  status           PoStatus @default(DRAFT)
+  deliveryDate     DateTime?
+  notes            String?
+  // Set when a Finance Head knowingly approves a PO that exceeds available budget.
+  budgetOverride   Boolean  @default(false)
+  createdByUserId  String
+  approvedByUserId String?
+  approvedAt       DateTime?
+
+  lines PoLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([vendorId])
+  @@index([status])
+}
+
+model PoLine {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  // The budget line this line commits against (Budget-vs-Actuals link).
+  budgetLineId    String?
+  budgetLine      BudgetLine?   @relation(fields: [budgetLineId], references: [id])
+  description     String
+  qty             Decimal       @db.Decimal(12, 2)
+  rate            Decimal       @db.Decimal(14, 2)
+  taxPct          Decimal?      @db.Decimal(5, 2)
+  amount          Decimal       @db.Decimal(14, 2)
+
+  @@index([purchaseOrderId])
+  @@index([budgetLineId])
 }
 
 // Immutable trail per Sheet 6's "Audit-first" principle.

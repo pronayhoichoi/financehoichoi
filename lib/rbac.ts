@@ -13,6 +13,7 @@ export type AccessLevel = "E" | "A" | "V" | "S" | "-";
 export const MODULES = [
   "VENDOR_MASTER",
   "VRF",
+  "PROJECT",
   "PO",
   "PRODUCTION_BUDGET",
   "DEPT_BUDGET",
@@ -32,6 +33,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   FINANCE_TEAM: {
     VENDOR_MASTER: "E",
     VRF: "E",
+    PROJECT: "E",
     PO: "E",
     PRODUCTION_BUDGET: "V",
     DEPT_BUDGET: "V",
@@ -46,6 +48,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   FINANCE_HEAD_CFO: {
     VENDOR_MASTER: "E",
     VRF: "A",
+    PROJECT: "A",
     PO: "A",
     PRODUCTION_BUDGET: "A",
     DEPT_BUDGET: "A",
@@ -60,6 +63,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   FOUNDER_CEO: {
     VENDOR_MASTER: "V",
     VRF: "V",
+    PROJECT: "V",
     PO: "V",
     PRODUCTION_BUDGET: "V",
     DEPT_BUDGET: "V",
@@ -74,6 +78,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   PRODUCTION_MANAGER: {
     VENDOR_MASTER: "V",
     VRF: "-",
+    PROJECT: "E",
     PO: "E",
     PRODUCTION_BUDGET: "E",
     DEPT_BUDGET: "-",
@@ -88,6 +93,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   DEPARTMENT_HEAD: {
     VENDOR_MASTER: "V",
     VRF: "-",
+    PROJECT: "V",
     PO: "E",
     PRODUCTION_BUDGET: "-",
     DEPT_BUDGET: "E",
@@ -102,6 +108,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   EMPLOYEE_CONTRACTOR: {
     VENDOR_MASTER: "-",
     VRF: "-",
+    PROJECT: "-",
     PO: "-",
     PRODUCTION_BUDGET: "-",
     DEPT_BUDGET: "-",
@@ -116,6 +123,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   REPORTING_MANAGER: {
     VENDOR_MASTER: "-",
     VRF: "-",
+    PROJECT: "-",
     PO: "V",
     PRODUCTION_BUDGET: "-",
     DEPT_BUDGET: "V",
@@ -130,6 +138,7 @@ const ACCESS_MATRIX: Record<Role, Record<ModuleKey, AccessLevel>> = {
   ADMIN_IT: {
     VENDOR_MASTER: "E",
     VRF: "V",
+    PROJECT: "V",
     PO: "V",
     PRODUCTION_BUDGET: "V",
     DEPT_BUDGET: "V",
