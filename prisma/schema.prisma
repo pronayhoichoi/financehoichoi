@@ -156,6 +156,7 @@ model Vendor {
   documents      VendorDocument[]
   vrfSubmission  VrfSubmission?
   purchaseOrders PurchaseOrder[]
+  contacts       Contact[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -240,6 +241,8 @@ model Project {
   budgets        BudgetHeader[]
   purchaseOrders PurchaseOrder[]
   scenes         Scene[]
+  locations      Location[]
+  shootDays      ShootDay[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -342,12 +345,96 @@ model Scene {
   synopsis    String?
   sortOrder   Int       @default(0)
 
+  // Schedule assignment (Phase C): which shoot day, and order within it.
+  shootDayId String?
+  shootDay   ShootDay? @relation(fields: [shootDayId], references: [id])
+  dayOrder   Int?
+
   elements BreakdownElement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([projectId])
+  @@index([shootDayId])
+}
+
+// A physical location for a project (Phase C).
+model Location {
+  id          String  @id @default(cuid())
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  address     String?
+  contactName String?
+  contactPhone String?
+  dayCost     Decimal? @db.Decimal(14, 2)
+  permitNote  String?
+  notes       String?
+
+  shootDays ShootDay[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// Global crew / talent directory (people). Distinct from Vendor (payee); a
+// contact may link to a Vendor when they are paid.
+model Contact {
+  id         String  @id @default(cuid())
+  name       String
+  role       String? // e.g. "DOP", "Gaffer", "Lead actor"
+  department String?
+  email      String?
+  phone      String?
+  vendorId   String?
+  vendor     Vendor? @relation(fields: [vendorId], references: [id])
+
+  callSheetEntries ShootDayCrew[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vendorId])
+}
+
+// A shooting day in a project's schedule (Phase C).
+model ShootDay {
+  id              String    @id @default(cuid())
+  projectId       String
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dayNumber       Int
+  date            DateTime?
+  unit            String? // "Main Unit", "2nd Unit"
+  locationId      String?
+  location        Location? @relation(fields: [locationId], references: [id])
+  generalCallTime String? // "07:00"
+  notes           String?
+
+  scenes Scene[]
+  crew   ShootDayCrew[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, dayNumber])
+  @@index([projectId])
+}
+
+// A crew/talent member called for a specific shoot day (call sheet row).
+model ShootDayCrew {
+  id         String   @id @default(cuid())
+  shootDayId String
+  shootDay   ShootDay @relation(fields: [shootDayId], references: [id], onDelete: Cascade)
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  callTime   String?
+  note       String?
+
+  @@unique([shootDayId, contactId])
+  @@index([shootDayId])
 }
 
 // A tagged breakdown element within a scene (cast, prop, wardrobe, …).

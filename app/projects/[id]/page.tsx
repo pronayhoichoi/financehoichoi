@@ -106,10 +106,16 @@ export default async function ProjectDetailPage({
       <Separator className="my-6" />
 
       <section>
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground">Script Breakdown</h2>
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Production</h2>
+        <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/projects/${id}/breakdown`}>Open breakdown</Link>
+            <Link href={`/projects/${id}/breakdown`}>Script breakdown</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/schedule`}>Shooting schedule</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/locations`}>Locations</Link>
           </Button>
         </div>
       </section>
