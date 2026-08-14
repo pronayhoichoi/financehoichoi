@@ -106,6 +106,17 @@ export default async function ProjectDetailPage({
       <Separator className="my-6" />
 
       <section>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground">Script Breakdown</h2>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/breakdown`}>Open breakdown</Link>
+          </Button>
+        </div>
+      </section>
+
+      <Separator className="my-6" />
+
+      <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-muted-foreground">Production Budget</h2>
           <Button asChild variant="outline" size="sm">

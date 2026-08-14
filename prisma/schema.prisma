@@ -78,6 +78,35 @@ enum PoStatus {
   CANCELLED
 }
 
+// --- Script Breakdown (Phase B) ---
+enum SceneInt {
+  INT
+  EXT
+  INT_EXT
+}
+
+enum SceneTime {
+  DAY
+  NIGHT
+  DAWN
+  DUSK
+}
+
+enum ElementCategory {
+  CAST
+  EXTRAS
+  PROPS
+  WARDROBE
+  MAKEUP
+  VEHICLES
+  SFX
+  STUNTS
+  ART
+  EQUIPMENT
+  LOCATION
+  MISC
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -204,8 +233,13 @@ model Project {
   currency     String        @default("INR")
   commissioned Boolean       @default(false)
 
+  // Imported script (single current file per project; Phase B).
+  scriptFileUrl  String?
+  scriptFileName String?
+
   budgets        BudgetHeader[]
   purchaseOrders PurchaseOrder[]
+  scenes         Scene[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -245,7 +279,8 @@ model BudgetLine {
   currency       String       @default("INR")
   sortOrder      Int          @default(0)
 
-  poLines PoLine[]
+  poLines           PoLine[]
+  breakdownElements BreakdownElement[]
 
   @@index([budgetHeaderId])
 }
@@ -291,6 +326,45 @@ model PoLine {
   amount          Decimal       @db.Decimal(14, 2)
 
   @@index([purchaseOrderId])
+  @@index([budgetLineId])
+}
+
+// A scene from the script (Phase B: Script Breakdown).
+model Scene {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number      String // "1", "12A" — free-form scene number
+  intExt      SceneInt  @default(INT)
+  setName     String // e.g. "Rahul's Apartment - Living Room"
+  time        SceneTime @default(DAY)
+  pageEighths Int? // page length in eighths of a page
+  synopsis    String?
+  sortOrder   Int       @default(0)
+
+  elements BreakdownElement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+}
+
+// A tagged breakdown element within a scene (cast, prop, wardrobe, …).
+model BreakdownElement {
+  id            String          @id @default(cuid())
+  sceneId       String
+  scene         Scene           @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  category      ElementCategory
+  name          String
+  qty           Int             @default(1)
+  notes         String?
+  estimatedCost Decimal?        @db.Decimal(14, 2)
+  // Optional link to the budget line this element's cost rolls into.
+  budgetLineId  String?
+  budgetLine    BudgetLine?     @relation(fields: [budgetLineId], references: [id])
+
+  @@index([sceneId])
   @@index([budgetLineId])
 }
 
