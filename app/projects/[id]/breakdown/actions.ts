@@ -148,6 +148,55 @@ export async function saveElementsAction(
   return {};
 }
 
+// Replace all shots on a scene (Phase D: Shot Lists). No attachments on a
+// shot, so a simple delete-all + recreate is safe.
+export async function saveShotsAction(
+  sceneId: string,
+  _prev: BreakdownState,
+  formData: FormData,
+): Promise<BreakdownState> {
+  const session = await auth();
+  if (!session?.user || !canEdit(session.user.role, "SCRIPT_BREAKDOWN")) {
+    return { error: "Not permitted." };
+  }
+  const scene = await prisma.scene.findUnique({
+    where: { id: sceneId },
+    select: { projectId: true },
+  });
+  if (!scene) return { error: "Scene not found." };
+
+  let rows: { number?: string; shotSize?: string; angle?: string; movement?: string; gear?: string; description?: string }[];
+  try {
+    rows = JSON.parse((formData.get("shots") as string) || "[]");
+  } catch {
+    return { error: "Could not read shots." };
+  }
+  const clean = rows.filter((r) => (r.number ?? "").trim());
+  if (rows.length > 0 && clean.length === 0) {
+    return { error: "Each shot needs a shot number." };
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.shot.deleteMany({ where: { sceneId } });
+    if (clean.length > 0) {
+      await tx.shot.createMany({
+        data: clean.map((r, i) => ({
+          sceneId,
+          number: (r.number ?? "").trim(),
+          shotSize: r.shotSize?.trim() || null,
+          angle: r.angle?.trim() || null,
+          movement: r.movement?.trim() || null,
+          gear: r.gear?.trim() || null,
+          description: r.description?.trim() || null,
+          sortOrder: i,
+        })),
+      });
+    }
+  });
+  revalidatePath(`/projects/${scene.projectId}/breakdown/${sceneId}`);
+  return {};
+}
+
 /**
  * Bridge: aggregate breakdown element estimates by category and seed a new
  * DRAFT production-budget version with one line per category. Requires budget

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ElementEditor } from "../element-editor";
+import { ShotEditor } from "./shot-editor";
 import { deleteSceneAction } from "../actions";
 
 export default async function ScenePage({
@@ -23,6 +24,7 @@ export default async function ScenePage({
     where: { id: sceneId },
     include: {
       elements: true,
+      shots: { orderBy: { sortOrder: "asc" } },
       project: { select: { id: true, title: true, currency: true } },
     },
   });
@@ -76,6 +78,37 @@ export default async function ScenePage({
                 {e.estimatedCost != null
                   ? `${scene.project.currency} ${Number(e.estimatedCost).toLocaleString("en-IN")}`
                   : "—"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <Separator className="my-6" />
+
+      <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Shot list</h2>
+      {editable ? (
+        <ShotEditor
+          sceneId={scene.id}
+          initialRows={scene.shots.map((s) => ({
+            number: s.number,
+            shotSize: s.shotSize ?? "",
+            angle: s.angle ?? "",
+            movement: s.movement ?? "",
+            gear: s.gear ?? "",
+            description: s.description ?? "",
+          }))}
+        />
+      ) : scene.shots.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No shots planned.</p>
+      ) : (
+        <ul className="divide-y rounded-md border text-sm">
+          {scene.shots.map((s) => (
+            <li key={s.id} className="flex items-center gap-3 px-4 py-2">
+              <span className="font-mono">{s.number}</span>
+              {s.shotSize && <Badge variant="secondary">{s.shotSize}</Badge>}
+              <span className="text-muted-foreground">
+                {[s.angle, s.movement, s.gear, s.description].filter(Boolean).join(" · ")}
               </span>
             </li>
           ))}

@@ -115,6 +115,18 @@ export default async function ProjectDetailPage({
             <Link href={`/projects/${id}/schedule`}>Shooting schedule</Link>
           </Button>
           <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/storyboard`}>Storyboard</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/moodboard`}>Mood board</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/tasks`}>Tasks</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/projects/${id}/calendar`}>Calendar</Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
             <Link href={`/projects/${id}/locations`}>Locations</Link>
           </Button>
         </div>
